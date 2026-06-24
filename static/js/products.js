@@ -9,7 +9,6 @@ async function loadProducts(reset = false) {
         snapshot = null;
         cursorUpdatedAt = null;
         cursorId = null;
-        container.innerHTML = "";
     }
 
     let category = document.getElementById("category").value;
@@ -31,13 +30,12 @@ async function loadProducts(reset = false) {
     const res = await fetch(url);
     const data = await res.json();
 
-    // IMPORTANT UPDATE
     snapshot = data.snapshot_time;
     cursorUpdatedAt = data.next_cursor?.cursor_updated_at || null;
     cursorId = data.next_cursor?.cursor_id || null;
 
-    // CLEAR OLD DATA ONLY WHEN RESET
-    container.innerHTML = reset ? "" : container.innerHTML;
+    // 🔥 IMPORTANT FIX (THIS WAS BUG)
+    container.innerHTML = "";
 
     data.items.forEach(p => {
         container.innerHTML += `
