@@ -36,6 +36,23 @@
             border-radius: 10px;
             box-shadow: 0 0 8px rgba(0,0,0,0.1);
         }
+
+        /* pagination UI */
+        .pagination {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .pagination button {
+            padding: 8px 12px;
+            margin: 5px;
+            cursor: pointer;
+        }
+
+        .page-info {
+            margin: 0 10px;
+            font-weight: bold;
+        }
     </style>
 </head>
 
@@ -53,11 +70,17 @@
         <option value="home">Home</option>
     </select>
 
-    <button onclick="loadProducts(true)">Filter</button>
-    <button onclick="loadProducts(false)">Next Page</button>
+    <button onclick="loadProducts(1)">Filter</button>
 </div>
 
 <div id="products" class="products"></div>
+
+<!-- Pagination -->
+<div class="pagination">
+    <button onclick="prevPage()">Previous</button>
+    <span class="page-info" id="pageInfo">Page 1</span>
+    <button onclick="nextPage()">Next</button>
+</div>
 
 {% load static %}
 <script src="{% static 'js/products.js' %}"></script>
