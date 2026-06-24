@@ -1,11 +1,15 @@
 let currentPage = 1;
 
+// IMPORTANT: Render URL fix (VERY IMPORTANT)
+const BASE_URL = window.location.origin;
+
 async function loadProducts(page = 1) {
+
     const container = document.getElementById("products");
 
     let category = document.getElementById("category").value;
 
-    let url = `/api/products/?limit=20&page=${page}`;
+    let url = `${BASE_URL}/api/products/?limit=20&page=${page}`;
 
     if (category) {
         url += `&category=${category}`;
@@ -17,7 +21,6 @@ async function loadProducts(page = 1) {
 
         container.innerHTML = "";
 
-        // ⚠️ IMPORTANT: tumhare API me "items" hai
         const products = data.items || [];
 
         if (products.length === 0) {
@@ -37,12 +40,11 @@ async function loadProducts(page = 1) {
         });
 
         currentPage = page;
-
         document.getElementById("pageInfo").innerText = `Page ${page}`;
 
     } catch (err) {
-        console.log("Error:", err);
-        container.innerHTML = "<h3>Error loading products</h3>";
+        console.log(err);
+        container.innerHTML = "<h3>Failed to load products</h3>";
     }
 }
 
