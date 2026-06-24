@@ -1,61 +1,61 @@
-let currentPage = 1;
+let snapshot = null;
+let cursorUpdatedAt = null;
+let cursorId = null;
 
-// IMPORTANT: Render URL fix (VERY IMPORTANT)
-const BASE_URL = window.location.origin;
-
-async function loadProducts(page = 1) {
-
+async function loadProducts(reset = false) {
     const container = document.getElementById("products");
+
+    if (reset) {
+        snapshot = null;
+        cursorUpdatedAt = null;
+        cursorId = null;
+        container.innerHTML = "";
+    }
 
     let category = document.getElementById("category").value;
 
-    let url = `${BASE_URL}/api/products/?limit=20&page=${page}`;
+    let url = "/api/products/?limit=20";
 
     if (category) {
-        url += `&category=${category}`;
+        url += "&category=" + category;
     }
 
-    try {
-        const response = await fetch(url);
-        const data = await response.json();
-
-        container.innerHTML = "";
-
-        const products = data.items || [];
-
-        if (products.length === 0) {
-            container.innerHTML = "<h3>No Products Found</h3>";
-            return;
-        }
-
-        products.forEach(product => {
-            container.innerHTML += `
-                <div class="card">
-                    <h3>${product.name}</h3>
-                    <p>Category: ${product.category}</p>
-                    <p>Price: ₹${product.price}</p>
-                    <small>ID: ${product.id}</small>
-                </div>
-            `;
-        });
-
-        currentPage = page;
-        document.getElementById("pageInfo").innerText = `Page ${page}`;
-
-    } catch (err) {
-        console.log(err);
-        container.innerHTML = "<h3>Failed to load products</h3>";
+    if (snapshot) {
+        url += "&snapshot_time=" + encodeURIComponent(snapshot);
     }
+
+    if (cursorUpdatedAt && cursorId) {
+        url += `&cursor_updated_at=${encodeURIComponent(cursorUpdatedAt)}&cursor_id=${cursorId}`;
+    }
+
+    const res = await fetch(url);
+    const data = await res.json();
+
+    // IMPORTANT UPDATE
+    snapshot = data.snapshot_time;
+    cursorUpdatedAt = data.next_cursor?.cursor_updated_at || null;
+    cursorId = data.next_cursor?.cursor_id || null;
+
+    // CLEAR OLD DATA ONLY WHEN RESET
+    container.innerHTML = reset ? "" : container.innerHTML;
+
+    data.items.forEach(p => {
+        container.innerHTML += `
+            <div class="card">
+                <h3>${p.name}</h3>
+                <p>${p.category}</p>
+                <p>₹${p.price}</p>
+            </div>
+        `;
+    });
 }
 
+window.onload = () => loadProducts(true);
+
 function nextPage() {
-    loadProducts(currentPage + 1);
+    loadProducts(false);
 }
 
 function prevPage() {
-    if (currentPage > 1) {
-        loadProducts(currentPage - 1);
-    }
+    loadProducts(false);
 }
-
-window.onload = () => loadProducts(1);
