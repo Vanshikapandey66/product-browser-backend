@@ -5,11 +5,12 @@ let cursorId = null;
 async function loadProducts(reset = false) {
     const container = document.getElementById("products");
 
-    // Filter button pe reset
+    // RESET only on filter
     if (reset) {
         snapshot = null;
         cursorUpdatedAt = null;
         cursorId = null;
+        container.innerHTML = "";
     }
 
     let category = document.getElementById("category").value;
@@ -43,9 +44,13 @@ async function loadProducts(reset = false) {
             alert("No more products!");
         }
 
-        // IMPORTANT: old products clear karo
-        container.innerHTML = "";
+        // ❗ IMPORTANT FIX HERE
+        // only clear on first load
+        if (reset) {
+            container.innerHTML = "";
+        }
 
+        // append ALWAYS (for pagination)
         data.items.forEach(product => {
             container.innerHTML += `
                 <div class="card">
@@ -62,7 +67,6 @@ async function loadProducts(reset = false) {
     }
 }
 
-// Initial load
 window.onload = function () {
     loadProducts(true);
 };
