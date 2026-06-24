@@ -12,6 +12,7 @@ from django.shortcuts import render
 def home(request):
     return render(request, "index.html")
 
+
 class ProductListView(APIView):
     def get(self, request):
         limit = int(request.GET.get("limit", 20))
@@ -21,18 +22,18 @@ class ProductListView(APIView):
         cursor_updated_at = request.GET.get("cursor_updated_at")
         cursor_id = request.GET.get("cursor_id")
 
+        # ✅ FIX 1: stable snapshot (DON'T regenerate randomly in pagination chain)
         if snapshot_time:
             snapshot = parse_datetime(snapshot_time)
         else:
             snapshot = timezone.now()
 
-        queryset = Product.objects.filter(
-            updated_at__lte=snapshot
-        )
+        queryset = Product.objects.filter(updated_at__lte=snapshot)
 
         if category:
             queryset = queryset.filter(category=category)
 
+        # ✅ stable ordering (VERY IMPORTANT)
         queryset = queryset.order_by("-updated_at", "-id")
 
         if cursor_updated_at and cursor_id:
@@ -43,13 +44,17 @@ class ProductListView(APIView):
                 Q(updated_at=cursor_time, id__lt=int(cursor_id))
             )
 
-        products = list(queryset[:limit])
+        # ✅ fetch one extra to check next page exists
+        results = list(queryset[:limit + 1])
+
+        has_next = len(results) > limit
+        products = results[:limit]
 
         serializer = ProductSerializer(products, many=True)
 
         next_cursor = None
 
-        if products:
+        if has_next and products:
             last = products[-1]
             next_cursor = {
                 "cursor_updated_at": last.updated_at.isoformat(),
