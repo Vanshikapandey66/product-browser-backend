@@ -5,7 +5,7 @@ async function loadProducts(page = 1) {
 
     let category = document.getElementById("category").value;
 
-    let url = `/api/products/?page=${page}`;
+    let url = `/api/products/?limit=20&page=${page}`;
 
     if (category) {
         url += `&category=${category}`;
@@ -17,21 +17,32 @@ async function loadProducts(page = 1) {
 
         container.innerHTML = "";
 
-        data.results.forEach(product => {
+        // ⚠️ IMPORTANT: tumhare API me "items" hai
+        const products = data.items || [];
+
+        if (products.length === 0) {
+            container.innerHTML = "<h3>No Products Found</h3>";
+            return;
+        }
+
+        products.forEach(product => {
             container.innerHTML += `
                 <div class="card">
                     <h3>${product.name}</h3>
                     <p>Category: ${product.category}</p>
                     <p>Price: ₹${product.price}</p>
+                    <small>ID: ${product.id}</small>
                 </div>
             `;
         });
 
         currentPage = page;
+
         document.getElementById("pageInfo").innerText = `Page ${page}`;
 
-    } catch (error) {
-        console.error(error);
+    } catch (err) {
+        console.log("Error:", err);
+        container.innerHTML = "<h3>Error loading products</h3>";
     }
 }
 
